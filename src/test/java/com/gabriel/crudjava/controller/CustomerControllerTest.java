@@ -22,8 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CustomerControllerTest {
 
     private static final String BASE_URL = "/customers";
-    private static final String EMAIL_EXISTENTE = "joao.silva@email.com";
-    private static final long ID_INEXISTENTE = 9999L;
+    private static final String EXISTING_EMAIL = "joao.silva@email.com";
+    private static final long NON_EXISTENT_ID = 9999L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,11 +31,11 @@ class CustomerControllerTest {
     @Autowired
     private CustomerRepository customerRepository;
 
-    private Long idExistente;
+    private Long existingId;
 
     @BeforeEach
     void setUp() {
-        idExistente = customerRepository.findByEmail(EMAIL_EXISTENTE).orElseThrow().getId();
+        existingId = customerRepository.findByEmail(EXISTING_EMAIL).orElseThrow().getId();
     }
 
     private String body(String name, String email, String phone, String address) {
@@ -52,41 +52,41 @@ class CustomerControllerTest {
     // ---------- GET /customers ----------
 
     @Test
-    void findAllDeveRetornar200ComListaDeClientes() throws Exception {
+    void findAll_shouldReturn200WithCustomerList() throws Exception {
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[*].email", hasItem(EMAIL_EXISTENTE)));
+                .andExpect(jsonPath("$[*].email", hasItem(EXISTING_EMAIL)));
     }
 
     // ---------- GET /customers/{id} ----------
 
     @Test
-    void findByIdDeveRetornar200QuandoClienteExiste() throws Exception {
-        mockMvc.perform(get(BASE_URL + "/{id}", idExistente))
+    void findById_shouldReturn200_whenCustomerExists() throws Exception {
+        mockMvc.perform(get(BASE_URL + "/{id}", existingId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(idExistente))
+                .andExpect(jsonPath("$.id").value(existingId))
                 .andExpect(jsonPath("$.name").value("João Silva"))
-                .andExpect(jsonPath("$.email").value(EMAIL_EXISTENTE))
+                .andExpect(jsonPath("$.email").value(EXISTING_EMAIL))
                 .andExpect(jsonPath("$.phone").value("(11) 99999-1111"))
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.updatedAt").exists());
     }
 
     @Test
-    void findByIdDeveRetornar404QuandoClienteNaoExiste() throws Exception {
-        mockMvc.perform(get(BASE_URL + "/{id}", ID_INEXISTENTE))
+    void findById_shouldReturn404_whenCustomerDoesNotExist() throws Exception {
+        mockMvc.perform(get(BASE_URL + "/{id}", NON_EXISTENT_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Cliente não encontrado com o id: " + ID_INEXISTENTE))
+                .andExpect(jsonPath("$.message").value("Cliente não encontrado com o id: " + NON_EXISTENT_ID))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
     // ---------- POST /customers ----------
 
     @Test
-    void createDeveRetornar201ComLocationQuandoDadosSaoValidos() throws Exception {
+    void create_shouldReturn201WithLocation_whenDataIsValid() throws Exception {
         mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("Ana Costa", "ana.costa@email.com", "(41) 96666-4444", "Rua XV, 10 - Curitiba/PR")))
@@ -101,17 +101,17 @@ class CustomerControllerTest {
     }
 
     @Test
-    void createDeveRetornar400QuandoEmailJaCadastrado() throws Exception {
+    void create_shouldReturn400_whenEmailAlreadyExists() throws Exception {
         mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("Outro Joao", EMAIL_EXISTENTE, "(11) 90000-0000", "Rua A, 1")))
+                        .content(body("Outro Joao", EXISTING_EMAIL, "(11) 90000-0000", "Rua A, 1")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Email já cadastrado no sistema."));
     }
 
     @Test
-    void createDeveRetornar422QuandoCamposObrigatoriosEstaoVazios() throws Exception {
+    void create_shouldReturn422_whenRequiredFieldsAreEmpty() throws Exception {
         mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("", "", "", "")))
@@ -122,7 +122,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    void createDeveRetornar422QuandoEmailInvalido() throws Exception {
+    void create_shouldReturn422_whenEmailIsInvalid() throws Exception {
         mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("Ana Costa", "email-invalido", "(41) 96666-4444", "Rua XV, 10")))
@@ -133,20 +133,20 @@ class CustomerControllerTest {
     // ---------- PUT /customers/{id} ----------
 
     @Test
-    void updateDeveRetornar200QuandoDadosSaoValidos() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/{id}", idExistente)
+    void update_shouldReturn200_whenDataIsValid() throws Exception {
+        mockMvc.perform(put(BASE_URL + "/{id}", existingId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("João Atualizado", EMAIL_EXISTENTE, "(11) 90000-0000", "Rua Nova, 1")))
+                        .content(body("João Atualizado", EXISTING_EMAIL, "(11) 90000-0000", "Rua Nova, 1")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(idExistente))
+                .andExpect(jsonPath("$.id").value(existingId))
                 .andExpect(jsonPath("$.name").value("João Atualizado"))
                 .andExpect(jsonPath("$.phone").value("(11) 90000-0000"))
                 .andExpect(jsonPath("$.address").value("Rua Nova, 1"));
     }
 
     @Test
-    void updateDeveRetornar404QuandoClienteNaoExiste() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/{id}", ID_INEXISTENTE)
+    void update_shouldReturn404_whenCustomerDoesNotExist() throws Exception {
+        mockMvc.perform(put(BASE_URL + "/{id}", NON_EXISTENT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("Qualquer", "qualquer@email.com", "(11) 90000-0000", "Rua A, 1")))
                 .andExpect(status().isNotFound())
@@ -154,8 +154,8 @@ class CustomerControllerTest {
     }
 
     @Test
-    void updateDeveRetornar400QuandoNovoEmailPertenceAOutroCliente() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/{id}", idExistente)
+    void update_shouldReturn400_whenNewEmailBelongsToAnotherCustomer() throws Exception {
+        mockMvc.perform(put(BASE_URL + "/{id}", existingId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("João Silva", "maria.oliveira@email.com", "(11) 99999-1111", "Rua A, 1")))
                 .andExpect(status().isBadRequest())
@@ -163,10 +163,10 @@ class CustomerControllerTest {
     }
 
     @Test
-    void updateDeveRetornar422QuandoDadosSaoInvalidos() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/{id}", idExistente)
+    void update_shouldReturn422_whenDataIsInvalid() throws Exception {
+        mockMvc.perform(put(BASE_URL + "/{id}", existingId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("", EMAIL_EXISTENTE, "(11) 99999-1111", "Rua A, 1")))
+                        .content(body("", EXISTING_EMAIL, "(11) 99999-1111", "Rua A, 1")))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[?(@.field == 'name')].message", hasItem("Nome é obrigatório")));
     }
@@ -174,17 +174,17 @@ class CustomerControllerTest {
     // ---------- DELETE /customers/{id} ----------
 
     @Test
-    void deleteDeveRetornar204QuandoClienteExiste() throws Exception {
-        mockMvc.perform(delete(BASE_URL + "/{id}", idExistente))
+    void delete_shouldReturn204_whenCustomerExists() throws Exception {
+        mockMvc.perform(delete(BASE_URL + "/{id}", existingId))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get(BASE_URL + "/{id}", idExistente))
+        mockMvc.perform(get(BASE_URL + "/{id}", existingId))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void deleteDeveRetornar404QuandoClienteNaoExiste() throws Exception {
-        mockMvc.perform(delete(BASE_URL + "/{id}", ID_INEXISTENTE))
+    void delete_shouldReturn404_whenCustomerDoesNotExist() throws Exception {
+        mockMvc.perform(delete(BASE_URL + "/{id}", NON_EXISTENT_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -192,7 +192,7 @@ class CustomerControllerTest {
     // ---------- CORS ----------
 
     @Test
-    void deveRetornarHeadersCorsParaOrigemPermitida() throws Exception {
+    void cors_shouldReturnHeaders_whenOriginIsAllowed() throws Exception {
         mockMvc.perform(options(BASE_URL)
                         .header("Origin", "http://localhost:3000")
                         .header("Access-Control-Request-Method", "POST"))
@@ -202,7 +202,7 @@ class CustomerControllerTest {
     }
 
     @Test
-    void deveRejeitarRequisicaoCorsDeOrigemNaoPermitida() throws Exception {
+    void cors_shouldReject_whenOriginIsNotAllowed() throws Exception {
         mockMvc.perform(options(BASE_URL)
                         .header("Origin", "http://site-nao-permitido.com")
                         .header("Access-Control-Request-Method", "POST"))

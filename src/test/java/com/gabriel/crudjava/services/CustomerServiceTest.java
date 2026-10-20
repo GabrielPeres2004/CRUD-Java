@@ -47,7 +47,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findAllDeveRetornarListaDeClientes() {
+    void findAll_shouldReturnCustomerList() {
         when(customerRepository.findAll()).thenReturn(List.of(customer));
 
         List<Customer> result = customerService.findAll();
@@ -58,7 +58,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findAllDeveRetornarListaVaziaQuandoNaoHaClientes() {
+    void findAll_shouldReturnEmptyList_whenNoCustomersExist() {
         when(customerRepository.findAll()).thenReturn(List.of());
 
         List<Customer> result = customerService.findAll();
@@ -67,7 +67,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findByIdDeveRetornarClienteQuandoExiste() {
+    void findById_shouldReturnCustomer_whenCustomerExists() {
         when(customerRepository.findById(ID)).thenReturn(Optional.of(customer));
 
         Customer result = customerService.findById(ID);
@@ -79,7 +79,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void findByIdDeveLancarObjectNotFoundExceptionQuandoNaoExiste() {
+    void findById_shouldThrowObjectNotFoundException_whenCustomerDoesNotExist() {
         when(customerRepository.findById(ID)).thenReturn(Optional.empty());
 
         ObjectNotFoundException ex = assertThrows(ObjectNotFoundException.class,
@@ -89,7 +89,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void createDeveSalvarClienteQuandoEmailNaoExiste() {
+    void create_shouldSaveCustomer_whenEmailDoesNotExist() {
         when(customerRepository.existsByEmail(EMAIL)).thenReturn(false);
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
 
@@ -108,7 +108,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void createDeveLancarDataIntegrityViolationExceptionQuandoEmailJaExiste() {
+    void create_shouldThrowDataIntegrityViolationException_whenEmailAlreadyExists() {
         when(customerRepository.existsByEmail(EMAIL)).thenReturn(true);
 
         DataIntegrityViolationException ex = assertThrows(DataIntegrityViolationException.class,
@@ -119,15 +119,15 @@ class CustomerServiceTest {
     }
 
     @Test
-    void updateDeveAtualizarClienteQuandoDadosSaoValidos() {
-        CustomerRequestDTO novosDados = new CustomerRequestDTO(
+    void update_shouldUpdateCustomer_whenDataIsValid() {
+        CustomerRequestDTO newData = new CustomerRequestDTO(
                 "João Atualizado", "joao.novo@email.com", "(11) 90000-0000", "Rua Nova, 1");
 
         when(customerRepository.findById(ID)).thenReturn(Optional.of(customer));
         when(customerRepository.existsByEmail("joao.novo@email.com")).thenReturn(false);
         when(customerRepository.save(any(Customer.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Customer result = customerService.update(ID, novosDados);
+        Customer result = customerService.update(ID, newData);
 
         assertEquals("João Atualizado", result.getName());
         assertEquals("joao.novo@email.com", result.getEmail());
@@ -138,7 +138,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void updateNaoDeveVerificarEmailQuandoEmailNaoMudou() {
+    void update_shouldNotCheckEmail_whenEmailDidNotChange() {
         when(customerRepository.findById(ID)).thenReturn(Optional.of(customer));
         when(customerRepository.save(any(Customer.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -150,22 +150,22 @@ class CustomerServiceTest {
     }
 
     @Test
-    void updateDeveLancarDataIntegrityViolationExceptionQuandoNovoEmailJaExiste() {
-        CustomerRequestDTO novosDados = new CustomerRequestDTO(
+    void update_shouldThrowDataIntegrityViolationException_whenNewEmailAlreadyExists() {
+        CustomerRequestDTO newData = new CustomerRequestDTO(
                 NAME, "maria.oliveira@email.com", PHONE, ADDRESS);
 
         when(customerRepository.findById(ID)).thenReturn(Optional.of(customer));
         when(customerRepository.existsByEmail("maria.oliveira@email.com")).thenReturn(true);
 
         DataIntegrityViolationException ex = assertThrows(DataIntegrityViolationException.class,
-                () -> customerService.update(ID, novosDados));
+                () -> customerService.update(ID, newData));
 
         assertEquals("Email já cadastrado no sistema.", ex.getMessage());
         verify(customerRepository, never()).save(any(Customer.class));
     }
 
     @Test
-    void updateDeveLancarObjectNotFoundExceptionQuandoClienteNaoExiste() {
+    void update_shouldThrowObjectNotFoundException_whenCustomerDoesNotExist() {
         when(customerRepository.findById(ID)).thenReturn(Optional.empty());
 
         assertThrows(ObjectNotFoundException.class,
@@ -175,7 +175,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void deleteDeveRemoverClienteQuandoExiste() {
+    void delete_shouldRemoveCustomer_whenCustomerExists() {
         when(customerRepository.findById(ID)).thenReturn(Optional.of(customer));
 
         customerService.delete(ID);
@@ -184,7 +184,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void deleteDeveLancarObjectNotFoundExceptionQuandoClienteNaoExiste() {
+    void delete_shouldThrowObjectNotFoundException_whenCustomerDoesNotExist() {
         when(customerRepository.findById(ID)).thenReturn(Optional.empty());
 
         assertThrows(ObjectNotFoundException.class, () -> customerService.delete(ID));

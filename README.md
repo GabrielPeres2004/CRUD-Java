@@ -100,6 +100,20 @@ Ou rode diretamente:
 
 > Em breve — o Docker será configurado para orquestrar a aplicação com MySQL via `docker-compose`.
 
+## 🔓 CORS
+
+As origens permitidas ficam na propriedade `cors.allowed-origins` (padrão: `localhost:3000`, `4200` e `5173`).
+Para alterar, defina a variável de ambiente `CORS_ALLOWED_ORIGINS` com as origens separadas por vírgula.
+
+## 🧪 Testes
+
+```bash
+./mvnw test
+```
+
+- `CustomerServiceTest` → testes unitários (Mockito)
+- `CustomerControllerTest` → testes de integração (MockMvc + H2)
+
 ## 📋 Commits
 
 O projeto segue o padrão **Conventional Commits** em português.

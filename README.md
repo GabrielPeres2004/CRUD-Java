@@ -67,7 +67,7 @@ git clone <url-do-repositorio>
 cd CRUD-Java
 
 # Rode a aplicação (perfil de teste com H2)
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 A aplicação sobe em `http://localhost:8080`.
@@ -93,7 +93,7 @@ MYSQL_PASSWORD=sua_senha
 Ou rode diretamente:
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
 ## 🐳 Docker
@@ -108,7 +108,7 @@ Para alterar, defina a variável de ambiente `CORS_ALLOWED_ORIGINS` com as orige
 ## 🧪 Testes
 
 ```bash
-./mvnw test
+mvn test
 ```
 
 - `CustomerServiceTest` → testes unitários (Mockito)

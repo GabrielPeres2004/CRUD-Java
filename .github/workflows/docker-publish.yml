@@ -3,7 +3,7 @@ name: Publicar imagem no Docker Hub
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build-and-push:

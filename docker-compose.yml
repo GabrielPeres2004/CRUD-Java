@@ -17,7 +17,7 @@ services:
       start_period: 20s
 
   Back-End:
-    image: gabrielperesdev/crud-java:1.0
+    image: gabrielperesdev/crud-java:latest
     container_name: crud-java
     ports:
       - "8080:8080"
@@ -33,7 +33,7 @@ services:
         condition: service_healthy
 
   Front-End:
-    image: gabrielperesdev/angular-crud:1.0
+    image: gabrielperesdev/angular-crud:latest
     container_name: crud-angular
     ports:
       - "3000:80"
